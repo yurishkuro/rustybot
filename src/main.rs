@@ -1,5 +1,5 @@
-use std::env;
 use clap::Parser;
+use std::env;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "rustybot", long_about = None)]
