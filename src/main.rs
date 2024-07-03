@@ -1,19 +1,20 @@
-use clap::{App, Arg};
+use clap::Parser;
+
+#[derive(Parser, Debug)]
+#[command(version, about = "rustybot", long_about = None)]
+struct Args {
+    /// Name of the person to greet
+    #[clap(short, long, default_value = "World")]
+    name: String,
+
+    /// Number of times to greet
+    #[clap(short, long, default_value_t = 1)]
+    count: u8,
+}
 
 fn main() {
-    let app = App::new("rustybot")
-        .version("1.0")
-        .author("Yuri Shkurov")
-        .about("rustybot")
-        .arg(
-            Arg::with_name("name")
-                .long("name")
-                .short("n")
-                .takes_value(true)
-                .default_value("World")
-                .help("Sets the name to greet"),
-        );
-    let matches = app.get_matches();
-    let name = matches.value_of("name").unwrap();
-    println!("Hello, {}!", name);
+    let args = Args::parse();
+    for _ in 0..args.count {
+        println!("Hello {}!", args.name);
+    }
 }

@@ -9,6 +9,6 @@ license-file = "LICENSE"
 publish = false
 
 [dependencies]
-clap = "4.0"
+clap = { version = "4.0", features = ["derive"] }
 
 [dev-dependencies]
