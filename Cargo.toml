@@ -10,3 +10,5 @@ publish = false
 
 [dependencies]
 clap = "2.33"
+
+[dev-dependencies]
