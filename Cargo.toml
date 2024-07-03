@@ -9,3 +9,4 @@ license-file = "LICENSE"
 publish = false
 
 [dependencies]
+clap = "2.33"
