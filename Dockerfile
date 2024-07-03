@@ -8,4 +8,4 @@ COPY . /app
 
 RUN cargo build --release
 
-ENTRYPOINT ["target/release/rustybot"]
+ENTRYPOINT ["/app/target/release/rustybot"]
