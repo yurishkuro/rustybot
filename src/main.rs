@@ -17,4 +17,9 @@ fn main() {
     for _ in 0..args.count {
         println!("Hello {}!", args.name);
     }
+    if let Ok(workspace) = env::var("GITHUB_WORKSPACE") {
+        println!("GITHUB_WORKSPACE: {}", workspace);
+    } else {
+        println!("GITHUB_WORKSPACE is not set");
+    }
 }
