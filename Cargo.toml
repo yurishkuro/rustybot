@@ -1,0 +1,11 @@
+[package]
+name = "rustybot"
+authors = ["Yuri Shkuro <github@ysh.us>"]
+description = "Forthcoming."
+version = "0.1.0"
+edition = "2021"
+readme = "README.md"
+license-file = "LICENSE"
+publish = false
+
+[dependencies]
