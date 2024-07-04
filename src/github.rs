@@ -1,19 +1,18 @@
-use reqwest;
 use serde::Deserialize;
 
 #[derive(Debug)]
 pub enum GitHubError {
-    ReqwestError(reqwest::Error),
-    JsonError(serde_json::Error),
-    OtherError(u16, String),
+    Reqwest(reqwest::Error),
+    Json(serde_json::Error),
+    Other(u16, String),
 }
 
 impl std::fmt::Display for GitHubError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            GitHubError::ReqwestError(err) => write!(f, "Reqwest error: {}", err),
-            GitHubError::JsonError(err) => write!(f, "JSON error: {}", err),
-            GitHubError::OtherError(code, err) => write!(f, "Status: {} - {}", code, err),
+            GitHubError::Reqwest(err) => write!(f, "Reqwest error: {}", err),
+            GitHubError::Json(err) => write!(f, "JSON error: {}", err),
+            GitHubError::Other(code, err) => write!(f, "Status: {} - {}", code, err),
         }
     }
 }
@@ -45,20 +44,20 @@ pub fn get_open_issues(
         repo_owner, repo_name
     );
     let client = reqwest::blocking::Client::new();
-    let mut req = client.get(&url).header("User-Agent", "rust/reqwest");
+    let mut req = client.get(url).header("User-Agent", "rust/reqwest");
     if !token.is_empty() {
         req = req.header("Authorization", format!("Bearer {}", token));
     }
-    let res = req.send().map_err(|err| GitHubError::ReqwestError(err))?;
+    let res = req.send().map_err(GitHubError::Reqwest)?;
     let status = res.status().as_u16();
-    let body = res.text().map_err(|err| GitHubError::ReqwestError(err))?;
+    let body = res.text().map_err(GitHubError::Reqwest)?;
     // println!("Status: {}", status);
     // println!("Response body: {}", body);
     if status != 200 {
-        return Err(GitHubError::OtherError(status, body));
+        return Err(GitHubError::Other(status, body));
     }
 
     let response: Vec<Issue> =
-        serde_json::from_str(&body).map_err(|err| GitHubError::JsonError(err))?;
+        serde_json::from_str(&body).map_err(GitHubError::Json)?;
     Ok(response)
 }
