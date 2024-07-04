@@ -14,15 +14,22 @@ struct Args {
     count: u8,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let args = Args::parse();
     for _ in 0..args.count {
         println!("Hello {}!", args.name);
     }
-    let repo_owner = "yurishkuro";
-    let repo_name = "rustybot";
     let token = env::var("GITHUB_TOKEN").unwrap_or_default();
-    match github::get_open_issues(repo_owner, repo_name, &token) {
+    let api_url =
+        env::var("GITHUB_API_URL").unwrap_or_else(|_| String::from("https://api.github.com"));
+    let gh_client = github::Client {
+        api_url,
+        token,
+        repo_owner: String::from("yurishkuro"),
+        repo_name: String::from("rustybot"),
+    };
+    match gh_client.get_open_issues().await {
         Ok(issues) => {
             for issue in issues {
                 println!(
