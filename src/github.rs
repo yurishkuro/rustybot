@@ -57,7 +57,6 @@ pub fn get_open_issues(
         return Err(GitHubError::Other(status, body));
     }
 
-    let response: Vec<Issue> =
-        serde_json::from_str(&body).map_err(GitHubError::Json)?;
+    let response: Vec<Issue> = serde_json::from_str(&body).map_err(GitHubError::Json)?;
     Ok(response)
 }
