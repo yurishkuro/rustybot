@@ -1,4 +1,5 @@
 use clap::Parser;
+mod github;
 use std::env;
 
 #[derive(Parser, Debug)]
@@ -18,9 +19,18 @@ fn main() {
     for _ in 0..args.count {
         println!("Hello {}!", args.name);
     }
-    if let Ok(workspace) = env::var("GITHUB_WORKSPACE") {
-        println!("GITHUB_WORKSPACE: {}", workspace);
-    } else {
-        println!("GITHUB_WORKSPACE is not set");
+    let repo_owner = "yurishkuro";
+    let repo_name = "rustybot";
+    let token = env::var("GITHUB_TOKEN").unwrap_or_default();
+    match github::get_open_issues(repo_owner, repo_name, &token) {
+        Ok(issues) => {
+            for issue in issues {
+                println!(
+                    "#{} - {} - by {}",
+                    issue.number, issue.title, issue.user.login
+                );
+            }
+        }
+        Err(err) => eprintln!("Error: {}", err),
     }
 }
