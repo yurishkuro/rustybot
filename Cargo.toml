@@ -17,4 +17,3 @@ tokio = { version = "1.38.0", features = ["full"] }
 
 [dev-dependencies]
 wiremock = "0.6.0"
-cargo-tarpaulin = "0.20.0"
