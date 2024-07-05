@@ -71,8 +71,11 @@ mod serde_helper {
     pub struct Condition {
         #[serde(rename = "type")]
         pub condition_type: ConditionType,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub label: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub command: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub timeout: Option<u16>,
     }    
 
@@ -101,7 +104,9 @@ mod serde_helper {
     pub struct Action {
         #[serde(rename = "type")]
         pub action_type: ActionType,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub label: Option<String>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         pub comment: Option<String>,
     }    
 }
@@ -244,3 +249,73 @@ impl serde::Serialize for Action {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_condition_serde() {
+        let condition = Condition::Activity;
+        let serialized = serde_json::to_string(&condition).unwrap();
+        assert_eq!(serialized, r#"{"type":"activity"}"#);
+        let deserialized: Condition = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Condition::Activity));
+
+        let condition = Condition::Command("test".into());
+        let serialized = serde_json::to_string(&condition).unwrap();
+        assert_eq!(serialized, r#"{"type":"command","command":"test"}"#);
+        let deserialized: Condition = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Condition::Command(ref s) if s == "test"));
+
+        let condition = Condition::Label("test".into());
+        let serialized = serde_json::to_string(&condition).unwrap();
+        assert_eq!(serialized, r#"{"type":"label","label":"test"}"#);
+        let deserialized: Condition = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Condition::Label(ref s) if s == "test"));
+
+        let condition = Condition::PullRequest;
+        let serialized = serde_json::to_string(&condition).unwrap();
+        assert_eq!(serialized, r#"{"type":"pull-request"}"#);
+        let deserialized: Condition = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Condition::PullRequest));
+
+        let condition = Condition::Timeout(10);
+        let serialized = serde_json::to_string(&condition).unwrap();
+        assert_eq!(serialized, r#"{"type":"timeout","timeout":10}"#);
+        let deserialized: Condition = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Condition::Timeout(10)));
+    }
+
+    #[test]
+    fn test_action_serde() {
+        let action = Action::AddLabel("test".into());
+        let serialized = serde_json::to_string(&action).unwrap();
+        assert_eq!(serialized, r#"{"type":"add-label","label":"test"}"#);
+        let deserialized: Action = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Action::AddLabel(ref s) if s == "test"));
+
+        let action = Action::Close;
+        let serialized = serde_json::to_string(&action).unwrap();
+        assert_eq!(serialized, r#"{"type":"close"}"#);
+        let deserialized: Action = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Action::Close));
+
+        let action = Action::PostComment("test".into());
+        let serialized = serde_json::to_string(&action).unwrap();
+        assert_eq!(serialized, r#"{"type":"post-comment","comment":"test"}"#);
+        let deserialized: Action = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Action::PostComment(ref s) if s == "test"));
+
+        let action = Action::ReplaceLabel("test".into());
+        let serialized = serde_json::to_string(&action).unwrap();
+        assert_eq!(serialized, r#"{"type":"replace-label","label":"test"}"#);
+        let deserialized: Action = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Action::ReplaceLabel(ref s) if s == "test"));
+
+        let action = Action::RemoveLabel("test".into());
+        let serialized = serde_json::to_string(&action).unwrap();
+        assert_eq!(serialized, r#"{"type":"remove-label","label":"test"}"#);
+        let deserialized: Action = serde_json::from_str(&serialized).unwrap();
+        assert!(matches!(deserialized, Action::RemoveLabel(ref s) if s == "test"));
+    }
+}
