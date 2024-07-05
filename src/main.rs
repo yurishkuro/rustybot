@@ -2,6 +2,7 @@ use clap::Parser;
 use std::env;
 
 mod config;
+mod config_loader;
 mod github;
 
 #[derive(Parser, Debug)]
@@ -42,5 +43,5 @@ async fn main() {
         }
         Err(err) => eprintln!("Error: {}", err),
     }
-    config::load_config("issue-manager.yml").expect("Expecting valid config");
+    config_loader::load_config("issue-manager.yml").expect("Expecting valid config");
 }

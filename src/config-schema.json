@@ -34,9 +34,6 @@
         "label": {
           "type": "string"
         },
-        "linked": {
-          "type": "boolean"
-        },
         "timeout": {
           "type": "number"
         },
