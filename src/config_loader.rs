@@ -3,15 +3,19 @@ use super::config;
 #[derive(Debug)]
 enum ConfigError {
     SchemaLoading(String),
-    SchemaValidation(String),
+    SchemaValidation(Vec<String>),
 }
 
 impl std::fmt::Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             ConfigError::SchemaLoading(msg) => write!(f, "Schema loading error: {}", msg),
-            ConfigError::SchemaValidation(msg) => {
-                write!(f, "Schema validation error: {}", msg)
+            ConfigError::SchemaValidation(errs) => {
+                write!(f, "Schema validation errors:")?;
+                for err in errs {
+                    write!(f, "\n  - {}", err)?;
+                }
+                Ok(())
             }
         }
     }
@@ -48,12 +52,10 @@ fn validate_config(file_name: &str) -> Result<(), Box<dyn std::error::Error>> {
     let yaml_value: serde_json::Value = serde_yaml::from_str(&yaml_content)?;
 
     Ok(schema.validate(&yaml_value).map_err(|errors| {
-        let mut out = String::from("Validation Errors: ");
-        for error in errors {
-            out.push_str("\n  - ");
-            out.push_str(&error.to_string());
-        }
-        Box::new(ConfigError::SchemaValidation(out))
+        // let strings: Vec<String> = errors.map(|error| error.to_string()).collect();
+        Box::new(ConfigError::SchemaValidation(
+            errors.map(|err| err.to_string()).collect(),
+        ))
     })?)
 }
 
@@ -68,12 +70,11 @@ pub fn load_config(file_name: &str) -> Result<config::StateMachine, Box<dyn std:
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[test]
     fn test_load_config() {
-        use std::io::Write;
-        use tempfile::NamedTempFile;
-
         let yaml = r#"
         states:
           - description: "Issue is open"
@@ -110,5 +111,30 @@ mod tests {
         assert!(config.states.len() == 2);
         assert!(config.states[0].transitions.len() == 2);
         assert!(config.states[1].transitions.len() == 1);
+    }
+
+    #[test]
+    fn test_invalid_config() {
+        let yaml = r#"
+        states:
+          - description: "Issue is open"
+            label: "open"
+            transitions:
+              - description: "Condition missing 'type'"
+                conditions:
+                  - timeout: 10
+                actions:
+                  - type: "add-label"
+                    label: "stale"
+        "#;
+        let mut file = NamedTempFile::new().expect("Failed to create temporary file");
+        file.write_all(yaml.as_bytes()).unwrap();
+        file.flush().unwrap();
+
+        let config = load_config(file.path().to_str().unwrap());
+        assert!(config.is_err());
+        let mut expected = String::from("Schema validation errors:\n");
+        expected.push_str(r#"  - "type" is a required property"#);
+        assert_eq!(expected, config.unwrap_err().to_string());
     }
 }
