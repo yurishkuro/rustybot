@@ -1,0 +1,104 @@
+{
+  "$ref": "#/definitions/StateMachineConfig",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "Action": {
+      "additionalProperties": false,
+      "properties": {
+        "comment": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "add-label",
+            "replace-label",
+            "remove-label",
+            "post-comment",
+            "close"
+          ],
+          "type": "string"
+        }
+      },
+      "required": ["type"],
+      "type": "object"
+    },
+    "Condition": {
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "timeout": {
+          "type": "number"
+        },
+        "type": {
+          "enum": ["label", "timeout", "activity", "pull-request", "command"],
+          "type": "string"
+        }
+      },
+      "required": ["type"],
+      "type": "object"
+    },
+    "State": {
+      "additionalProperties": false,
+      "description": "Defines the structure for the state machine configuration.",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "transitions": {
+          "items": {
+            "$ref": "#/definitions/Transition"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["description", "label", "transitions"],
+      "type": "object"
+    },
+    "StateMachineConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "states": {
+          "items": {
+            "$ref": "#/definitions/State"
+          },
+          "type": "array"
+        }
+      },
+      "required": ["states"],
+      "type": "object"
+    },
+    "Transition": {
+      "additionalProperties": false,
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/definitions/Action"
+          },
+          "type": "array"
+        },
+        "conditions": {
+          "items": {
+            "$ref": "#/definitions/Condition"
+          },
+          "type": "array"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "required": ["description", "conditions", "actions"],
+      "type": "object"
+    }
+  }
+}
