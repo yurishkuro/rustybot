@@ -73,8 +73,8 @@ pub struct StateMachineConfig {
 #[derive(Debug)]
 enum ConfigError {
     // IoError(std::io::Error),
-    SchemaLoadingError(String),
-    SchemaValidationError(String),
+    SchemaLoading(String),
+    SchemaValidation(String),
     // YamlError(serde_yaml::Error),
     // SchemaError(jsonschema::ValidationError<'a>),
 }
@@ -82,9 +82,10 @@ enum ConfigError {
 impl std::fmt::Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            ConfigError::SchemaLoadingError(msg) => write!(f, "Schema loading error: {}", msg),
-            ConfigError::SchemaValidationError(msg) => write!(f, "Schema validation error: {}", msg),
-            // ...
+            ConfigError::SchemaLoading(msg) => write!(f, "Schema loading error: {}", msg),
+            ConfigError::SchemaValidation(msg) => {
+                write!(f, "Schema validation error: {}", msg)
+            } // ...
         }
     }
 }
@@ -98,17 +99,18 @@ fn load_schema(schema_bytes: &[u8]) -> Result<jsonschema::JSONSchema, ConfigErro
     use serde_json;
 
     let schema_str = unsafe { std::str::from_utf8_unchecked(schema_bytes) };
-    let schema_json: serde_json::Value = serde_json::from_str(schema_str)
-        .map_err(|err|-> ConfigError {
+    let schema_json: serde_json::Value =
+        serde_json::from_str(schema_str).map_err(|err| -> ConfigError {
             println!("Schema Parsing Error: {}", err);
-            ConfigError::SchemaLoadingError(err.to_string())
+            ConfigError::SchemaLoading(err.to_string())
         })?;
 
     return JSONSchema::options()
         .with_draft(Draft::Draft7)
-        .compile(&schema_json).map_err(|err| -> ConfigError {
+        .compile(&schema_json)
+        .map_err(|err| -> ConfigError {
             println!("Schema Compile Error: {}", err);
-            ConfigError::SchemaLoadingError(err.to_string())
+            ConfigError::SchemaLoading(err.to_string())
         });
 }
 
@@ -124,7 +126,7 @@ pub fn validate_config(file_name: &str) -> Result<(), Box<dyn std::error::Error>
             out.push('\n');
             out.push_str(&error.to_string());
         }
-        Box::new(ConfigError::SchemaValidationError(out))
+        Box::new(ConfigError::SchemaValidation(out))
     })?)
 }
 
