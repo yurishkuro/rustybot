@@ -1,6 +1,8 @@
 use clap::Parser;
-mod github;
 use std::env;
+
+mod config;
+mod github;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "rustybot", long_about = None)]
@@ -40,4 +42,5 @@ async fn main() {
         }
         Err(err) => eprintln!("Error: {}", err),
     }
+    config::load_config("issue-manager.yml").expect("Expecting valid config");
 }
