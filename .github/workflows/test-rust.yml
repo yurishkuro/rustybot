@@ -84,3 +84,32 @@ jobs:
         with:
           command: bench
           args: --verbose
+
+  cover:
+    name: Coverage
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: llvm-tools-preview
+
+      - name: cargo install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov          
+
+      - name: cargo llvm-cov
+        run: cargo llvm-cov --locked --all-features --workspace --lcov --output-path lcov.info        
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: 650b97c5-156c-4740-989d-975aa186f8d0
+        with:
+          fail_ci_if_error: true
