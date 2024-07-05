@@ -64,3 +64,51 @@ pub fn load_config(file_name: &str) -> Result<config::StateMachine, Box<dyn std:
     let config: config::StateMachine = serde_yaml::from_str(&yaml_content)?;
     Ok(config)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_load_config() {
+        use std::io::Write;
+        use tempfile::NamedTempFile;
+
+        let yaml = r#"
+        states:
+          - description: "Issue is open"
+            label: "open"
+            transitions:
+              - description: "Issue is stale"
+                conditions:
+                  - type: "timeout"
+                    timeout: 10
+                actions:
+                  - type: "add-label"
+                    label: "stale"
+              - description: "Issue is resolved"
+                conditions:
+                  - type: "label"
+                    label: "resolved"
+                actions:
+                  - type: "close"
+          - description: "Issue is stale"
+            label: "stale"
+            transitions:
+              - description: "Issue is resolved"
+                conditions:
+                  - type: "label"
+                    label: "resolved"
+                actions:
+                  - type: "close"
+        "#;
+        let mut file = NamedTempFile::new().expect("Failed to create temporary file");
+        file.write_all(yaml.as_bytes()).unwrap();
+        file.flush().unwrap();
+
+        let config = load_config(file.path().to_str().unwrap()).unwrap();
+        assert!(config.states.len() == 2);
+        assert!(config.states[0].transitions.len() == 2);
+        assert!(config.states[1].transitions.len() == 1);
+    }
+}
