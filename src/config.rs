@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct StateMachine {
     pub states: Vec<State>,
@@ -46,27 +45,21 @@ pub enum Action {
 mod serde_helper {
     use serde::{Deserialize, Serialize};
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug, Default)]
     pub enum ConditionType {
-        #[serde(rename = "label")]
-        Label,
-        #[serde(rename = "timeout")]
-        Timeout,
         #[serde(rename = "activity")]
+        #[default]
         Activity,
-        #[serde(rename = "pull-request")]
-        PullRequest,
         #[serde(rename = "command")]
         Command,
+        #[serde(rename = "label")]
+        Label,
+        #[serde(rename = "pull-request")]
+        PullRequest,
+        #[serde(rename = "timeout")]
+        Timeout,
     }
 
-    // Meaningless, but needed to support Default for Condition
-    impl Default for ConditionType {
-        fn default() -> Self {
-            ConditionType::Activity
-        }
-    }
-    
     #[derive(Serialize, Deserialize, Debug, Default)]
     pub struct Condition {
         #[serde(rename = "type")]
@@ -77,11 +70,12 @@ mod serde_helper {
         pub command: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub timeout: Option<u16>,
-    }    
+    }
 
-    #[derive(Serialize, Deserialize, Debug)]
+    #[derive(Serialize, Deserialize, Debug, Default)]
     pub enum ActionType {
         #[serde(rename = "add-label")]
+        #[default]
         AddLabel,
         #[serde(rename = "close")]
         Close,
@@ -93,13 +87,6 @@ mod serde_helper {
         RemoveLabel,
     }
 
-    // Meaningless, but needed to support Default for Action
-    impl Default for ActionType {
-        fn default() -> Self {
-            ActionType::AddLabel
-        }
-    }
-    
     #[derive(Serialize, Deserialize, Debug, Default)]
     pub struct Action {
         #[serde(rename = "type")]
@@ -108,10 +95,10 @@ mod serde_helper {
         pub label: Option<String>,
         #[serde(skip_serializing_if = "Option::is_none")]
         pub comment: Option<String>,
-    }    
+    }
 }
 
-impl<'de> serde::Deserialize<'de> for Condition {    
+impl<'de> serde::Deserialize<'de> for Condition {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: serde::Deserializer<'de>,
@@ -189,7 +176,7 @@ impl<'de> serde::Deserialize<'de> for Action {
         let action: serde_helper::Action = serde::Deserialize::deserialize(deserializer)?;
         match action.action_type {
             ActionType::AddLabel => Ok(Action::AddLabel(action.label.unwrap())),
-            ActionType::Close => Ok(Action::Close), 
+            ActionType::Close => Ok(Action::Close),
             ActionType::PostComment => Ok(Action::PostComment(action.comment.unwrap())),
             ActionType::ReplaceLabel => Ok(Action::ReplaceLabel(action.label.unwrap())),
             ActionType::RemoveLabel => Ok(Action::RemoveLabel(action.label.unwrap())),
