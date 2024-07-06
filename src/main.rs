@@ -4,6 +4,7 @@ use std::env;
 mod config;
 mod config_loader;
 mod github;
+mod github_client;
 
 #[derive(Parser, Debug)]
 #[command(version, about = "rustybot", long_about = None)]
@@ -26,12 +27,13 @@ async fn main() {
     let token = env::var("GITHUB_TOKEN").unwrap_or_default();
     let api_url =
         env::var("GITHUB_API_URL").unwrap_or_else(|_| String::from("https://api.github.com"));
-    let gh_client = github::Client {
+    let gh_client = github_client::Client {
         api_url,
         token,
         repo_owner: String::from("yurishkuro"),
         repo_name: String::from("rustybot"),
     };
+    use github::GitHub;
     match gh_client.get_open_issues().await {
         Ok(issues) => {
             for issue in issues {
