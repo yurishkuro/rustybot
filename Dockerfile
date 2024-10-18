@@ -1,6 +1,6 @@
 # TODO use staged builds to avoid including Rust toolchain
 
-FROM rust:1.80
+FROM rust:1.82
 
 WORKDIR /app
 
